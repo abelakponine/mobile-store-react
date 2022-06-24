@@ -1,6 +1,7 @@
 import { useDispatch } from "react-redux";
 import { Product } from "../interfaces";
 import { addToCart, removeFromCart } from "../redux/slice/cartSlice";
+import { showProduct } from "../redux/slice/productSlice";
 const Products: (products:Array<Product>)=>any = (products)=>{
     
     let cat:JSX.Element[] = [];
@@ -13,7 +14,7 @@ const Products: (products:Array<Product>)=>any = (products)=>{
         let product = products[x];
 
         cat.push(
-            <div key={key} className="cat-item mx-4">
+            <div key={key} className="cat-item mx-4" onClick={()=>dispatch(showProduct(product))}>
                 <div className="cat-banner" style={{backgroundImage:`url(${product.banner})`, backgroundSize:'cover'}}></div>
                 <div className="desc">
                     <h1>{product.title}</h1>
@@ -39,7 +40,12 @@ const Products: (products:Array<Product>)=>any = (products)=>{
 
                     <div className="d-flex">
                         <button className="btn p-2" style={{boxShadow:'none'}}><i className="far fa-heart" style={{fontSize:'24px'}}></i></button>
-                        <button className="btn ms-auto" style={{background:'#f31c89', color:'white', borderRadius:'25px'}} onClick={()=>dispatch(addToCart(product))}>Add to cart</button>
+                        <button className="btn ms-auto" style={{background:'#f31c89', color:'white', borderRadius:'25px'}} onClick={(event)=>{
+                            event.preventDefault();
+                            event.stopPropagation();
+                            const newProduct:Product = JSON.parse(JSON.stringify(product));
+                            dispatch(addToCart(newProduct))
+                        }}>Add to cart</button>
                     </div>
 
                 </div>

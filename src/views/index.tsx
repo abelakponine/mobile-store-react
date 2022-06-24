@@ -5,7 +5,8 @@ import Categories from "../modules/Categories";
 import '../css/index.css';
 import Products from "../modules/Products";
 import { useDispatch, useSelector } from "react-redux";
-import { removeFromCart } from "../redux/slice/cartSlice";
+import { addToCart, removeFromCart } from "../redux/slice/cartSlice";
+import Cart from "../modules/Cart";
 
 const Index: (params:any)=>JSX.Element = (params)=>{
     
@@ -43,6 +44,7 @@ const Index: (params:any)=>JSX.Element = (params)=>{
             description: 'Pink Dress and Black Skirt',
             price: 100,
             rating: 2,
+            itemCount: 1,
             banner: 'https://multimedia-image2.wholeecdn.com/product-center-main/2021/12/11/aca761da-cca9-4a7a-bcfa-89d606b488e6_800x800.jpg'
         },
         {
@@ -51,6 +53,7 @@ const Index: (params:any)=>JSX.Element = (params)=>{
             description: 'Affordable Gown',
             price: 80,
             rating: 4,
+            itemCount: 1,
             banner: 'https://multimedia-image2.wholeecdn.com/product-center-main/2021/12/09/cf7cf484-d772-498e-9319-7fa74d414d2d_350x350.jpg'
         },
         {
@@ -59,6 +62,7 @@ const Index: (params:any)=>JSX.Element = (params)=>{
             description: 'Order delicious pizza',
             price: 5,
             rating: 4,
+            itemCount: 1,
             banner: 'https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_fill,f_auto,q_auto,w_1600,h_500,d_uk:cuisines:pizza-4.jpg/v1/uk/restaurants/114234.jpg'
         },
         {
@@ -67,6 +71,7 @@ const Index: (params:any)=>JSX.Element = (params)=>{
             description: 'Engagement and Wedding Rings',
             price: 120,
             rating: 4,
+            itemCount: 1,
             banner: 'https://multimedia-image2.wholeecdn.com/product-center-main/2021/12/09/c8333daf-14d6-4884-89c8-402fd62c3366_350x350.jpg'
         },
         {
@@ -75,12 +80,13 @@ const Index: (params:any)=>JSX.Element = (params)=>{
             description: 'Get your sun glasses at affordable prices',
             price: 20,
             rating: 4,
+            itemCount: 1,
             banner: 'https://multimedia-image2.wholeecdn.com/product-center-main/2021/12/11/78beb1e5-cfd7-45ea-8428-48f29daabae6_350x350.jpg'
         }
     ])
 
-    const cart:{items:Product[]} = useSelector((state)=> state) as {items:Product[]};
-
+    const cartSate:{cart:{items:Product[]}} = useSelector((state)=> state) as {cart: {items:Product[]}};
+    const viewingProductState: {viewProduct:{product: Product|null}} = useSelector((state)=>state) as ({viewProduct:{product: Product|null}});
     const dispatch = useDispatch();
 
     return (
@@ -129,50 +135,58 @@ const Index: (params:any)=>JSX.Element = (params)=>{
             </div>
             
             <div id="rightcol" className="d-flex flex-column py-4 relative">
+                <Cart {...cartSate.cart}/>
+            </div>
 
-                <div id="cart-head" className="d-flex px-4">
-                    <h1 style={{fontSize:'1.3rem'}} className='d-inline-block app-text-color'> <i className="fa fa-shopping-cart"></i> Cart</h1>
-                    <span className="px-4 ms-auto" style={{fontSize:'1.3rem', fontWeight:'bold'}}>£
-                        
-                        {(()=>{
-                            let prices: number[] = []
-                            cart.items.forEach(item=>{
-                                prices.push(item.price);
-                            });
-                            return prices.reduce((a,b)=>a+b,0);
-                        })()}
-                    </span>
-                </div>
-
-                <div id="view-cart-item" className="mt-4 py-2 px-4">
-                    {cart.items.length < 1 ? <h3 className="d-block mx-auto my-4" style={{width:'max-content', fontSize:'1.2rem'}}>Cart is empty</h3> : ''}
-                    {(()=>{
-
-                        const cartItems:JSX.Element[] = [];
-                        let itemIndex = 0;
-
-                        cart.items.forEach(item=>{
-                            const index = itemIndex;
-
-                            cartItems.push(<div key={index} className="d-flex cart-item my-2" title={item.description}>
-                                <img src={item.banner} alt={item.title} style={{objectFit:'cover', objectPosition:'top center'}}/>
-                                <div className="d-flex flex-column">
-                                    <h1 style={{fontSize:'1rem'}} className='px-2'>{item.title}</h1>
-                                    <h3 className="px-2 d-flex">£{item.price} <button className="btn text-danger p-1 ms-2" style={{fontSize:'14px', boxShadow:'none', whiteSpace:'nowrap'}} onClick={()=>dispatch(removeFromCart(index))}>remove item</button></h3>
-                                </div>
-                            </div>);
-                            itemIndex++;
-                        });
-
-                        return cartItems;
-                    })()}
-                </div>
+            <div id="view-product" className="fixed" style={{display:'none', width:'100%', height:'100%', left:0, top:0}}>
                 
-                <div id="pay-now" className="relative px-4">
-                    <form action="" className="d-flex" style={{height:'100%'}}>
-                        <button className="d-block btn app-bg-color m-auto" style={{width:'80%', borderRadius:'30px'}} disabled={cart.items.length < 1}>Pay Now</button>
-                    </form>
-                </div>
+                {(()=>{
+                    const viewing: JSX.Element[] = [];
+
+                    if (viewingProductState.viewProduct.product !== null){
+                        viewing.push(<div key={1} className="cat-item mx-4">
+                            <button className="absolute btn close text-light" style={{background:'#20202034', zIndex:10, right:12, top: 10, boxShadow: 'none', padding:'2px 7px 0px', borderRadius:'50%'}} onClick={()=>{
+                                const w:any = window;
+                                const $ = w.jQuery;
+                                $('#view-product').fadeOut(200)
+                            }}><i className="fa fa-times" style={{fontSize:'1.5rem'}}></i></button>
+                            <div className="cat-banner" style={{backgroundImage:`url(${viewingProductState.viewProduct.product!.banner})`, backgroundSize:'cover'}}></div>
+                            <div className="desc">
+                                <h1>{viewingProductState.viewProduct.product!.title}</h1>
+                                <h2>{viewingProductState.viewProduct.product!.description}</h2>
+                                <h3>ID: {viewingProductState.viewProduct.product!.id}</h3>
+
+                                <div className="ratings my-2 ms-auto" style={{fontSize:'12px'}}>
+                                    {(()=>{
+                                        let stars:Array<JSX.Element> = [];
+                                        for (var i = 0; i < viewingProductState.viewProduct.product!.rating;i++){
+                                            stars.push(<i key={i} className="fa fa-star"></i>);
+                                        }
+                                        
+                                        for (i = 0; i < 5 - viewingProductState.viewProduct.product!.rating;i++){
+                                            stars.push(<i key={(i + viewingProductState.viewProduct.product!.rating)} className="far fa-star"></i>);
+                                        }
+                                        
+                                        return stars;
+                                    })()}
+                                </div>
+                                
+                                <strong className="d-block my-2 px-2" style={{color:'#059705'}}>£{viewingProductState.viewProduct.product!.price}</strong>
+
+                                <div className="d-flex">
+                                    <button className="btn p-2" style={{boxShadow:'none'}}><i className="far fa-heart" style={{fontSize:'24px'}}></i></button>
+                                    <button className="btn ms-auto" style={{background:'#f31c89', color:'white', borderRadius:'25px'}} onClick={()=>{
+                                        const newProduct:Product = JSON.parse(JSON.stringify(viewingProductState.viewProduct.product));
+                                        dispatch(addToCart(newProduct))
+                                    }}>Add to cart</button>
+                                </div>
+
+                            </div>
+                        </div>);
+                    }
+                    return viewing;
+                })()}
+                    
             </div>
         </div>
     )

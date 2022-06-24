@@ -23,5 +23,6 @@ export interface Product {
     description: string;
     price: number,
     rating: number,
-    banner: string
+    banner: string,
+    itemCount?: number
 }
